@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.roll-on-gnome" path="/org/gnome/shell/extensions/roll-on-gnome/">
+    <key name="toggle-panel" type="as">
+      <default><![CDATA[['<Super><Alt>r']]]></default>
+      <summary>Open the dice panel</summary>
+      <description>Keyboard shortcut that opens (and closes) the dice panel in the top bar. Set to an empty list to disable.</description>
+    </key>
+    <key name="always-tumble" type="b">
+      <default>false</default>
+      <summary>Always play the full tumble</summary>
+      <description>Ignore the system Reduced Motion setting (Shell 51 and later) and always play the full drop-and-spin roll. When false and Reduced Motion is on, the die rolls in place with slowly changing faces.</description>
+    </key>
+    <key name="d100-style" type="s">
+      <choices>
+        <choice value="pair"/>
+        <choice value="ball"/>
+      </choices>
+      <default>'pair'</default>
+      <summary>How a d100 is shown</summary>
+      <description>"pair" rolls two ten-sided percentile dice (tens and units) and shows the total. "ball" rolls a single 100-sided ball.</description>
+    </key>
+  </schema>
+</schemalist>

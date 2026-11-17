@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <path fill="#bebebe" fill-rule="evenodd" d="M4 1H12A3 3 0 0 1 15 4V12A3 3 0 0 1 12 15H4A3 3 0 0 1 1 12V4A3 3 0 0 1 4 1ZM4 2.5A1.5 1.5 0 0 0 2.5 4V12A1.5 1.5 0 0 0 4 13.5H12A1.5 1.5 0 0 0 13.5 12V4A1.5 1.5 0 0 0 12 2.5Z"/>
+  <circle fill="#bebebe" cx="5.2" cy="5.2" r="1.2"/>
+  <circle fill="#bebebe" cx="8" cy="8" r="1.2"/>
+  <circle fill="#bebebe" cx="10.8" cy="10.8" r="1.2"/>
+</svg>

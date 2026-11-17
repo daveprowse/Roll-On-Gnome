@@ -1,0 +1,83 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
+.roll-on-gnome-menu,
+.popup-menu-boxpointer.roll-on-gnome-menu {
+    -arrow-background-color: #2e2e32;
+    -arrow-border-color: #D90D95;
+    -arrow-border-width: 2px;
+    -arrow-border-radius: 14px;
+}
+
+.popup-menu-content.roll-on-gnome-content {
+    background-color: #2e2e32;
+    border-radius: 12px;
+}
+
+.roll-on-gnome-menu .popup-menu-item {
+    color: #ffffff;
+}
+
+.roll-on-gnome-menu .popup-menu-item:hover,
+.roll-on-gnome-menu .popup-menu-item:focus,
+.roll-on-gnome-menu .popup-menu-item:selected {
+    background-color: rgba(217, 13, 149, 0.45);
+    color: #ffffff;
+}
+
+.roll-on-gnome-menu .popup-menu-item:active {
+    background-color: rgba(217, 13, 149, 0.65);
+    color: #ffffff;
+}
+
+.roll-on-gnome-menu .popup-separator-menu-item {
+    color: #ffffff;
+}
+
+.roll-on-gnome-menu .popup-separator-menu-item .popup-separator-menu-item-separator {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.roll-on-gnome-title-icon {
+    margin-right: 8px;
+}
+
+.roll-on-gnome-title {
+    color: #ffffff;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 110%;
+    letter-spacing: 2px;
+    padding: 2px 0;
+}
+
+.roll-on-gnome-step {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border-radius: 6px;
+    padding: 2px 10px;
+    margin: 0 4px;
+    font-weight: bold;
+}
+
+.roll-on-gnome-step:hover,
+.roll-on-gnome-step:focus {
+    background-color: rgba(217, 13, 149, 0.45);
+}
+
+.roll-on-gnome-step:active {
+    background-color: rgba(217, 13, 149, 0.65);
+}
+
+.roll-on-gnome-count {
+    color: #ffffff;
+    font-weight: bold;
+    min-width: 1.4em;
+    text-align: center;
+}
+
+.roll-on-gnome-total {
+    font-size: 34px;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+}
