@@ -6,6 +6,7 @@ import St from 'gi://St';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
+import {SHELL_MAJOR} from './version.js';
 import {DiceActor, DIE_SIZE, PERCENT_DIE_SIZE, faceRange} from './dice.js';
 
 const TUMBLE_MS = 1200;
@@ -54,8 +55,9 @@ export class Roller {
     _reduceMotion() {
         if (this._settings.get_boolean('always-tumble'))
             return false;
-        return !!St.ReducedMotion &&
-            St.Settings.get().reducedMotion === St.ReducedMotion.REDUCE;
+        if (SHELL_MAJOR < 51)
+            return false;
+        return St.Settings.get().reducedMotion === St.ReducedMotion.REDUCE;
     }
 
     roll(sides, count = 1) {
@@ -65,16 +67,17 @@ export class Roller {
 
         this._clear();
 
+        const monitor = this._monitor();
         const values = Array.from({length: count}, () => GLib.random_int_range(1, sides + 1));
         const total = values.reduce((sum, value) => sum + value, 0);
         const showTotal = count > 1 || percentile;
 
-        const faces = this._createFaces(sides, values, percentile);
+        const faces = this._createFaces(sides, values, percentile, monitor);
         this._faces = faces;
 
         for (const face of faces)
             Main.layoutManager.uiGroup.add_child(face.die);
-        this._place(faces);
+        this._place(faces, monitor);
         for (const face of faces)
             face.die.setValue(this._randomValue(face));
 
@@ -114,10 +117,9 @@ export class Roller {
         this._clear();
     }
 
-    _createFaces(sides, values, percentile) {
+    _createFaces(sides, values, percentile, monitor) {
         const base = percentile ? PERCENT_DIE_SIZE : DIE_SIZE;
         const dieCount = percentile ? values.length * 2 : values.length;
-        const monitor = this._monitor();
         const fit = Math.floor((monitor.width * 0.9 - (dieCount - 1) * GAP) / dieCount);
         const size = Math.min(fit, dieCount <= 2 ? base : Math.round(base * CROWDED_SCALE));
 
@@ -144,12 +146,19 @@ export class Roller {
 
     _monitor() {
         const monitors = Main.layoutManager.monitors;
+
+        const connector = this._settings.get_string('dice-monitor');
+        if (connector) {
+            const index = global.backend.get_monitor_manager().get_monitor_for_connector(connector);
+            if (monitors[index])
+                return monitors[index];
+        }
+
         return monitors[global.display.get_current_monitor()] ??
             Main.layoutManager.primaryMonitor;
     }
 
-    _place(faces) {
-        const monitor = this._monitor();
+    _place(faces, monitor) {
 
         const size = faces[0].size;
         const width = faces.length * size + (faces.length - 1) * GAP;

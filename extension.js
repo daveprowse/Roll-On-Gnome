@@ -13,11 +13,15 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import {Roller} from './roller.js';
+import {SHELL_MAJOR} from './version.js';
 
 const SHORTCUT_KEY = 'toggle-panel';
 const DICE = [4, 6, 8, 10, 12, 20, 100];
+const ROLL_KEYS = DICE.map(sides => `roll-d${sides}`);
 const MAX_DICE = 6;
 const HISTORY_SIZE = 3;
+const POINTER_KEY = 'panel-at-pointer';
+const POINTER_GAP = 14;
 
 export default class RollOnGnomeExtension extends Extension {
     enable() {
@@ -26,7 +30,7 @@ export default class RollOnGnomeExtension extends Extension {
         this._history = [];
         this._count = 1;
 
-        this._indicator = new PanelMenu.Button(0.0, this.metadata.name, false);
+        this._indicator = new PanelMenu.Button(0.5, this.metadata.name, false);
         const icon = new Gio.FileIcon({
             file: this.dir.get_child('icons').get_child('dice-symbolic.svg'),
         });
@@ -36,8 +40,8 @@ export default class RollOnGnomeExtension extends Extension {
         }));
 
         const menu = this._indicator.menu;
-        const menuActor = menu.actor ?? menu._boxPointer;
-        menuActor?.add_style_class_name('roll-on-gnome-menu');
+        const menuActor = menu.actor;
+        menuActor.add_style_class_name('roll-on-gnome-menu');
         menu.box.add_style_class_name('roll-on-gnome-content');
         this._buildTitle(menu);
         this._buildStepper(menu);
@@ -47,6 +51,26 @@ export default class RollOnGnomeExtension extends Extension {
 
         Main.panel.addToStatusArea(this.uuid, this._indicator);
 
+        // The menu is anchored to this invisible 1px actor when it opens at the pointer.
+        // It sits just below the menu in the stacking order so it is laid out first.
+        this._anchor = new St.Widget({width: 1, height: 1, opacity: 0, reactive: false});
+        if (menuActor.get_parent() === Main.uiGroup)
+            Main.uiGroup.insert_child_below(this._anchor, menuActor);
+        else
+            Main.uiGroup.add_child(this._anchor);
+
+        // Move the menu back under the top bar icon only once it has finished closing,
+        // otherwise it visibly jumps while it fades out.
+        const pointer = menu.actor;
+        this._pointer = pointer;
+        this._hiddenId = pointer.connect('notify::visible', () => {
+            if (!pointer.visible) {
+                menu.sourceActor = this._indicator;
+                this._setArrowSide(menu, St.Side.TOP);
+                this._refreshHistory();
+            }
+        });
+
         const action = Main.wm.addKeybinding(
             SHORTCUT_KEY,
             this._settings,
@@ -55,13 +79,30 @@ export default class RollOnGnomeExtension extends Extension {
             () => this._onShortcut());
         if (action === Meta.KeyBindingAction.NONE)
             console.error(`${this.uuid}: could not bind the shortcut; another program may already own it`);
+
+        DICE.forEach((sides, i) => {
+            Main.wm.addKeybinding(
+                ROLL_KEYS[i],
+                this._settings,
+                Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
+                Shell.ActionMode.NORMAL | Shell.ActionMode.POPUP,
+                () => this._onQuickRoll(sides));
+        });
     }
 
     disable() {
         Main.wm.removeKeybinding(SHORTCUT_KEY);
+        ROLL_KEYS.forEach(key => Main.wm.removeKeybinding(key));
 
         this._roller?.destroy();
         this._roller = null;
+
+        if (this._hiddenId)
+            this._pointer?.disconnect(this._hiddenId);
+        this._hiddenId = 0;
+        this._pointer = null;
+        this._anchor?.destroy();
+        this._anchor = null;
 
         this._indicator?.destroy();
         this._indicator = null;
@@ -72,6 +113,7 @@ export default class RollOnGnomeExtension extends Extension {
         this._historyHeader = null;
         this._historyItems = null;
         this._history = null;
+        this._historyDirty = false;
 
         this._settings = null;
     }
@@ -97,8 +139,16 @@ export default class RollOnGnomeExtension extends Extension {
     _buildSettings(menu) {
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         const item = new PopupMenu.PopupMenuItem('Settings');
-        item.connect('activate', () => this.openPreferences());
+        item.connect('activate', () => this._openPreferences());
         menu.addMenuItem(item);
+    }
+
+    async _openPreferences() {
+        try {
+            await Main.extensionManager.openExtensionPrefs(this.uuid, '', {});
+        } catch (e) {
+            console.error(`${this.uuid}: could not open preferences: ${e.message}`);
+        }
     }
 
     _buildStepper(menu) {
@@ -133,7 +183,25 @@ export default class RollOnGnomeExtension extends Extension {
             track_hover: true,
         });
         button.connect('clicked', onClick);
+        button.connect('key-press-event', (actor, event) => this._onStepKey(actor, event));
         return button;
+    }
+
+    _onStepKey(actor, event) {
+        const directions = {
+            [Clutter.KEY_Up]: St.DirectionType.UP,
+            [Clutter.KEY_Down]: St.DirectionType.DOWN,
+            [Clutter.KEY_Left]: St.DirectionType.LEFT,
+            [Clutter.KEY_Right]: St.DirectionType.RIGHT,
+        };
+        const direction = directions[event.get_key_symbol()];
+        if (direction === undefined)
+            return Clutter.EVENT_PROPAGATE;
+
+        const group = global.focus_manager.get_group(actor);
+        return group?.navigate_focus(actor, direction, true)
+            ? Clutter.EVENT_STOP
+            : Clutter.EVENT_PROPAGATE;
     }
 
     _buildDiceItems(menu) {
@@ -177,9 +245,41 @@ export default class RollOnGnomeExtension extends Extension {
         if (Main.modalCount > 0 && !menu.isOpen)
             return;
 
-        menu.toggle();
-        if (menu.isOpen)
-            this._dieItems[0].grab_key_focus();
+        if (menu.isOpen) {
+            menu.close();
+            return;
+        }
+
+        const atPointer = this._settings.get_boolean(POINTER_KEY);
+        if (atPointer) {
+            const [x, y] = global.get_pointer();
+            this._anchor.set_position(x + POINTER_GAP, y);
+            menu.sourceActor = this._anchor;
+            this._setArrowSide(menu, St.Side.LEFT);
+        }
+        menu.open();
+        if (atPointer)
+            this._indicator.remove_style_pseudo_class('active');
+        this._dieItems[0].grab_key_focus();
+    }
+
+    // At the pointer the menu sits beside it (arrow on the left), because the shell
+    // keeps a side-arrow menu inside the monitor vertically. A menu below the pointer
+    // can run off the bottom of the screen as the recent-rolls list grows.
+    _setArrowSide(menu, side) {
+        const pointer = menu.actor;
+        // Before Shell 50, updateArrowSide() did not update the side the shell flips from.
+        if (SHELL_MAJOR < 50)
+            pointer._userArrowSide = side;
+        pointer.updateArrowSide(side);
+    }
+
+    _onQuickRoll(sides) {
+        if (Main.modalCount > 0 && !this._indicator.menu.isOpen)
+            return;
+
+        this._indicator.menu.close();
+        this._roll(sides);
     }
 
     _roll(sides) {
@@ -188,6 +288,18 @@ export default class RollOnGnomeExtension extends Extension {
 
         this._history.unshift({sides, count, values, total});
         this._history.length = Math.min(this._history.length, HISTORY_SIZE);
+        this._historyDirty = true;
+
+        // The list changes the menu's height, so wait until the menu is hidden
+        // rather than make it move while it is on screen.
+        if (!this._pointer?.visible)
+            this._refreshHistory();
+    }
+
+    _refreshHistory() {
+        if (!this._historyDirty || !this._historyItems)
+            return;
+        this._historyDirty = false;
 
         this._historyHeader.visible = true;
         this._historyItems.forEach((item, i) => {

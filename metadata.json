@@ -1,7 +1,7 @@
 {
   "uuid": "roll-on-gnome@daveprowse.github.io",
   "name": "Roll On Gnome",
-  "description": "Roll d4, d6, d8, d10, d12, d20 or d100 on your screen with a tumbling animation. Open the dice panel with Super+Alt+R (configurable) or from the top bar.",
+  "description": "Roll d4, d6, d8, d10, d12, d20 or d100 on your screen with Super+Alt+R (configurable) or from the top bar.",
   "shell-version": [
     "46",
     "47",
@@ -12,5 +12,6 @@
   ],
   "settings-schema": "org.gnome.shell.extensions.roll-on-gnome",
   "url": "https://github.com/daveprowse/Roll-On-Gnome",
-  "version-name": "0.6.3"
+  "version-name": "1.0",
+  "version": 1
 }

@@ -6,6 +6,46 @@
       <summary>Open the dice panel</summary>
       <description>Keyboard shortcut that opens (and closes) the dice panel in the top bar. Set to an empty list to disable.</description>
     </key>
+    <key name="panel-at-pointer" type="b">
+      <default>true</default>
+      <summary>Open the panel at the pointer</summary>
+      <description>When true, the shortcut opens the dice panel next to the mouse pointer, on whichever monitor it is on. When false, the panel drops from the top bar. Clicking the top bar icon always opens it there.</description>
+    </key>
+    <key name="roll-d4" type="as">
+      <default>[]</default>
+      <summary>Roll a d4</summary>
+      <description>Keyboard shortcut that rolls a d4 straight away, without opening the panel. Uses the number of dice currently set in the panel. Empty means no shortcut.</description>
+    </key>
+    <key name="roll-d6" type="as">
+      <default>[]</default>
+      <summary>Roll a d6</summary>
+      <description>Keyboard shortcut that rolls a d6 straight away, without opening the panel. Uses the number of dice currently set in the panel. Empty means no shortcut.</description>
+    </key>
+    <key name="roll-d8" type="as">
+      <default>[]</default>
+      <summary>Roll a d8</summary>
+      <description>Keyboard shortcut that rolls a d8 straight away, without opening the panel. Uses the number of dice currently set in the panel. Empty means no shortcut.</description>
+    </key>
+    <key name="roll-d10" type="as">
+      <default>[]</default>
+      <summary>Roll a d10</summary>
+      <description>Keyboard shortcut that rolls a d10 straight away, without opening the panel. Uses the number of dice currently set in the panel. Empty means no shortcut.</description>
+    </key>
+    <key name="roll-d12" type="as">
+      <default>[]</default>
+      <summary>Roll a d12</summary>
+      <description>Keyboard shortcut that rolls a d12 straight away, without opening the panel. Uses the number of dice currently set in the panel. Empty means no shortcut.</description>
+    </key>
+    <key name="roll-d20" type="as">
+      <default>[]</default>
+      <summary>Roll a d20</summary>
+      <description>Keyboard shortcut that rolls a d20 straight away, without opening the panel. Uses the number of dice currently set in the panel. Empty means no shortcut.</description>
+    </key>
+    <key name="roll-d100" type="as">
+      <default>[]</default>
+      <summary>Roll a d100</summary>
+      <description>Keyboard shortcut that rolls a d100 straight away, without opening the panel. Uses the number of dice currently set in the panel. Empty means no shortcut.</description>
+    </key>
     <key name="always-tumble" type="b">
       <default>false</default>
       <summary>Always play the full tumble</summary>
@@ -19,6 +59,11 @@
       <default>'pair'</default>
       <summary>How a d100 is shown</summary>
       <description>"pair" rolls two ten-sided percentile dice (tens and units) and shows the total. "ball" rolls a single 100-sided ball.</description>
+    </key>
+    <key name="dice-monitor" type="s">
+      <default>''</default>
+      <summary>Monitor for the dice</summary>
+      <description>Connector name of the monitor the dice appear on, such as DP-2. Leave empty to use the monitor under the pointer. If the named monitor is not connected, the monitor under the pointer is used.</description>
     </key>
   </schema>
 </schemalist>
